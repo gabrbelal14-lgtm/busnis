@@ -19,12 +19,13 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
 
         .container {
             max-width: 1100px;
-            margin: 0 auto;
+            margin: 20px auto;
+            padding: 0 20px;
         }
 
         h1 {
@@ -220,296 +221,321 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/navbar.css">
 </head>
 <body>
 
-<div class="container">
-    <h1>إدارة وإنشاء الفواتير</h1>
+    <!-- Upper Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h2>📊 نظام <span>الإدارة الديناميكي</span></h2>
+        </div>
+        
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </div>
 
-    <!-- نموذج إنشاء فاتورة مبيعات جديدة -->
-    <div class="card">
-        <h2>🧾 إنشاء فاتورة مبيعات جديدة</h2>
-        <form id="invoiceForm">
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html" class="home-btn">🏠 الرئيسية</a></li>
+            <li><a href="products.html">المنتجات</a></li>
+            <li><a href="customers.html">العملاء</a></li>
+            <li><a href="invoices.html" class="active">الفواتير</a></li>
+            <li><a href="reports.html">التقارير</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>إدارة وإنشاء الفواتير</h1>
+
+        <!-- نموذج إنشاء فاتورة مبيعات جديدة -->
+        <div class="card">
+            <h2>🧾 إنشاء فاتورة مبيعات جديدة</h2>
+            <form id="invoiceForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="invoiceId">رقم الفاتورة</label>
+                        <input type="text" id="invoiceId" placeholder="INV-1001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerSelect">العميل</label>
+                        <select id="customerSelect" required>
+                            <option value="">اختر العميل...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productSelect">المنتج</label>
+                        <select id="productSelect" onchange="updateUnitPrice()" required>
+                            <option value="">اختر المنتج...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unitPrice">سعر الوحدة</label>
+                        <input type="number" id="unitPrice" step="0.01" readonly required>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">الكمية</label>
+                        <input type="number" id="quantity" value="1" min="1" oninput="calculateTotal()" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="totalAmount">الإجمالي</label>
+                        <input type="number" id="totalAmount" step="0.01" readonly required>
+                    </div>
+                    <div class="form-group">
+                        <label for="invoiceDate">تاريخ الفاتورة</label>
+                        <input type="date" id="invoiceDate" required>
+                    </div>
+                    <button type="submit" class="btn-submit">حفظ وإنشاء الفاتورة</button>
+                </div>
+            </form>
+            <div id="statusMsg" class="status-msg"></div>
+        </div>
+
+        <!-- البحث والتصفية -->
+        <div class="card">
+            <h2>🔍 بحث وتصفية الفواتير</h2>
             <div class="form-grid">
                 <div class="form-group">
-                    <label for="invoiceId">رقم الفاتورة</label>
-                    <input type="text" id="invoiceId" placeholder="INV-1001" required>
+                    <label for="searchInput">رقم الفاتورة / اسم العميل</label>
+                    <input type="text" id="searchInput" placeholder="اكتب للبحث..." onkeyup="filterInvoices()">
                 </div>
                 <div class="form-group">
-                    <label for="customerSelect">العميل</label>
-                    <select id="customerSelect" required>
-                        <option value="">اختر العميل...</option>
-                    </select>
+                    <label for="dateFilter">تاريخ الفاتورة</label>
+                    <input type="date" id="dateFilter" onchange="filterInvoices()">
                 </div>
-                <div class="form-group">
-                    <label for="productSelect">المنتج</label>
-                    <select id="productSelect" onchange="updateUnitPrice()" required>
-                        <option value="">اختر المنتج...</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="unitPrice">سعر الوحدة</label>
-                    <input type="number" id="unitPrice" step="0.01" readonly required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">الكمية</label>
-                    <input type="number" id="quantity" value="1" min="1" oninput="calculateTotal()" required>
-                </div>
-                <div class="form-group">
-                    <label for="totalAmount">الإجمالي</label>
-                    <input type="number" id="totalAmount" step="0.01" readonly required>
-                </div>
-                <div class="form-group">
-                    <label for="invoiceDate">تاريخ الفاتورة</label>
-                    <input type="date" id="invoiceDate" required>
-                </div>
-                <button type="submit" class="btn-submit">حفظ وإنشاء الفاتورة</button>
-            </div>
-        </form>
-        <div id="statusMsg" class="status-msg"></div>
-    </div>
-
-    <!-- البحث والتصفية -->
-    <div class="card">
-        <h2>🔍 بحث وتصفية الفواتير</h2>
-        <div class="form-grid">
-            <div class="form-group">
-                <label for="searchInput">رقم الفاتورة / اسم العميل</label>
-                <input type="text" id="searchInput" placeholder="اكتب للبحث..." onkeyup="filterInvoices()">
-            </div>
-            <div class="form-group">
-                <label for="dateFilter">تاريخ الفاتورة</label>
-                <input type="date" id="dateFilter" onchange="filterInvoices()">
             </div>
         </div>
-    </div>
 
-    <!-- جدول عرض الفواتير -->
-    <div class="card">
-        <h2>سجل الفواتير المسجلة</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>رقم الفاتورة</th>
-                    <th>اسم العميل</th>
-                    <th>المنتج</th>
-                    <th>الكمية</th>
-                    <th>الإجمالي</th>
-                    <th>التاريخ</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="invoicesTableBody">
-                <!-- سيتم تعبئة الفواتير ديناميكيًا -->
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Modal معاينة وطباعة الفاتورة -->
-<div id="invoiceModal" class="modal-overlay">
-    <div class="invoice-box">
-        <div class="invoice-header">
-            <h2>فاتورة مبيعات</h2>
-            <span id="modalInvNum" style="font-weight: bold;"></span>
-        </div>
-        <div class="invoice-details">
-            <p><strong>اسم العميل:</strong> <span id="modalCustomerName"></span></p>
-            <p><strong>تاريخ الإصدار:</strong> <span id="modalInvDate"></span></p>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>المنتج</th>
-                    <th>الكمية</th>
-                    <th>السعر</th>
-                    <th>الإجمالي</th>
-                </tr>
-            </thead>
-            <tbody id="modalItemsTable">
-                <!-- بيانات العرض الموقت للمعاينة -->
-            </tbody>
-        </table>
-        <div class="invoice-total">
-            الإجمالي الكلي: <span id="modalTotalAmount"></span> ج.م
-        </div>
-        <div class="modal-actions">
-            <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة</button>
-            <button class="btn-close" onclick="closeModal()">إغلاق</button>
+        <!-- جدول عرض الفواتير -->
+        <div class="card">
+            <h2>سجل الفواتير المسجلة</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>اسم العميل</th>
+                        <th>المنتج</th>
+                        <th>الكمية</th>
+                        <th>الإجمالي</th>
+                        <th>التاريخ</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <!-- سيتم تعبئة الفواتير ديناميكيًا -->
+                </tbody>
+            </table>
         </div>
     </div>
-</div>
 
-<script>
-    const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
-    const invoiceForm = document.getElementById('invoiceForm');
-    const tableBody = document.getElementById('invoicesTableBody');
-    const statusMsg = document.getElementById('statusMsg');
-    
-    let allInvoices = [];
-    let productsList = [];
+    <!-- Modal معاينة وطباعة الفاتورة -->
+    <div id="invoiceModal" class="modal-overlay">
+        <div class="invoice-box">
+            <div class="invoice-header">
+                <h2>فاتورة مبيعات</h2>
+                <span id="modalInvNum" style="font-weight: bold;"></span>
+            </div>
+            <div class="invoice-details">
+                <p><strong>اسم العميل:</strong> <span id="modalCustomerName"></span></p>
+                <p><strong>تاريخ الإصدار:</strong> <span id="modalInvDate"></span></p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المنتج</th>
+                        <th>الكمية</th>
+                        <th>السعر</th>
+                        <th>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id="modalItemsTable">
+                    <!-- بيانات العرض الموقت للمعاينة -->
+                </tbody>
+            </table>
+            <div class="invoice-total">
+                الإجمالي الكلي: <span id="modalTotalAmount"></span> ج.م
+            </div>
+            <div class="modal-actions">
+                <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة</button>
+                <button class="btn-close" onclick="closeModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
 
-    document.getElementById('invoiceDate').valueAsDate = new Date();
+    <script>
+        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+        const invoiceForm = document.getElementById('invoiceForm');
+        const tableBody = document.getElementById('invoicesTableBody');
+        const statusMsg = document.getElementById('statusMsg');
+        
+        let allInvoices = [];
+        let productsList = [];
 
-    // 1. تحميل قائمة العملاء والمنتجات في الـ Dropdowns عند فتح الصفحة
-    function loadDropdowns() {
-        if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
-
-        fetch(`${SCRIPT_URL}?action=getInitialData`)
-            .then(res => res.json())
-            .then(data => {
-                const customerSelect = document.getElementById('customerSelect');
-                data.customers.forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c.name;
-                    opt.textContent = `${c.name} (${c.code})`;
-                    customerSelect.appendChild(opt);
-                });
-
-                const productSelect = document.getElementById('productSelect');
-                productsList = data.products;
-                productsList.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.name;
-                    opt.dataset.price = p.price;
-                    opt.textContent = `${p.name} - ${p.price} ج.م`;
-                    productSelect.appendChild(opt);
-                });
-            })
-            .catch(err => console.error('Error loading initial data:', err));
-    }
-
-    // تحديث السعر تلقائيًا عند اختيار المنتج
-    function updateUnitPrice() {
-        const select = document.getElementById('productSelect');
-        const selectedOption = select.options[select.selectedIndex];
-        const price = selectedOption.dataset.price || 0;
-        document.getElementById('unitPrice').value = price;
-        calculateTotal();
-    }
-
-    // حساب الإجمالي
-    function calculateTotal() {
-        const price = parseFloat(document.getElementById('unitPrice').value) || 0;
-        const qty = parseInt(document.getElementById('quantity').value) || 0;
-        document.getElementById('totalAmount').value = (price * qty).toFixed(2);
-    }
-
-    // 2. إرسال الفاتورة لـ Google Sheets
-    invoiceForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const invoiceData = {
-            action: 'addInvoice',
-            id: document.getElementById('invoiceId').value,
-            customerName: document.getElementById('customerSelect').value,
-            productName: document.getElementById('productSelect').value,
-            unitPrice: parseFloat(document.getElementById('unitPrice').value),
-            quantity: parseInt(document.getElementById('quantity').value),
-            total: parseFloat(document.getElementById('totalAmount').value),
-            date: document.getElementById('invoiceDate').value
-        };
-
-        allInvoices.push(invoiceData);
-        renderInvoiceRow(invoiceData);
-
-        statusMsg.style.color = '#1a2a3a';
-        statusMsg.textContent = 'جاري حفظ الفاتورة وتحديث المخزون...';
-
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(invoiceData)
-        })
-        .then(() => {
-            statusMsg.style.color = 'green';
-            statusMsg.textContent = 'تم حفظ الفاتورة وتحديث الكميات بنجاح!';
-            setTimeout(() => statusMsg.textContent = '', 3000);
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            statusMsg.style.color = 'var(--accent-red)';
-            statusMsg.textContent = 'حدث خطأ أثناء الحفظ.';
-        });
-
-        invoiceForm.reset();
         document.getElementById('invoiceDate').valueAsDate = new Date();
-    });
 
-    // 3. إضافة صف في الجدول
-    function renderInvoiceRow(inv) {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${inv.id}</td>
-            <td>${inv.customerName}</td>
-            <td>${inv.productName}</td>
-            <td>${inv.quantity}</td>
-            <td>${parseFloat(inv.total).toFixed(2)} ج.م</td>
-            <td>${inv.date}</td>
-            <td><button class="btn-action" onclick="viewInvoice('${inv.id}', '${inv.customerName}', '${inv.productName}', ${inv.quantity}, ${inv.unitPrice}, ${inv.total}, '${inv.date}')">عرض / طباعة</button></td>
-        `;
-        tableBody.appendChild(row);
-    }
+        // 1. تحميل قائمة العملاء والمنتجات في الـ Dropdowns عند فتح الصفحة
+        function loadDropdowns() {
+            if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
 
-    // 4. جلب الفواتير السابقة (GET)
-    function fetchInvoices() {
-        if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+            fetch(`${SCRIPT_URL}?action=getInitialData`)
+                .then(res => res.json())
+                .then(data => {
+                    const customerSelect = document.getElementById('customerSelect');
+                    data.customers.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.name;
+                        opt.textContent = `${c.name} (${c.code})`;
+                        customerSelect.appendChild(opt);
+                    });
 
-        fetch(`${SCRIPT_URL}?action=getInvoices`)
-            .then(res => res.json())
-            .then(data => {
-                allInvoices = data;
-                tableBody.innerHTML = '';
-                allInvoices.forEach(inv => renderInvoiceRow(inv));
+                    const productSelect = document.getElementById('productSelect');
+                    productsList = data.products;
+                    productsList.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.name;
+                        opt.dataset.price = p.price;
+                        opt.textContent = `${p.name} - ${p.price} ج.م`;
+                        productSelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error('Error loading initial data:', err));
+        }
+
+        // تحديث السعر تلقائيًا عند اختيار المنتج
+        function updateUnitPrice() {
+            const select = document.getElementById('productSelect');
+            const selectedOption = select.options[select.selectedIndex];
+            const price = selectedOption.dataset.price || 0;
+            document.getElementById('unitPrice').value = price;
+            calculateTotal();
+        }
+
+        // حساب الإجمالي
+        function calculateTotal() {
+            const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+            const qty = parseInt(document.getElementById('quantity').value) || 0;
+            document.getElementById('totalAmount').value = (price * qty).toFixed(2);
+        }
+
+        // 2. إرسال الفاتورة لـ Google Sheets
+        invoiceForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const invoiceData = {
+                action: 'addInvoice',
+                id: document.getElementById('invoiceId').value,
+                customerName: document.getElementById('customerSelect').value,
+                productName: document.getElementById('productSelect').value,
+                unitPrice: parseFloat(document.getElementById('unitPrice').value),
+                quantity: parseInt(document.getElementById('quantity').value),
+                total: parseFloat(document.getElementById('totalAmount').value),
+                date: document.getElementById('invoiceDate').value
+            };
+
+            allInvoices.push(invoiceData);
+            renderInvoiceRow(invoiceData);
+
+            statusMsg.style.color = '#1a2a3a';
+            statusMsg.textContent = 'جاري حفظ الفاتورة وتحديث المخزون...';
+
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(invoiceData)
             })
-            .catch(err => console.error('Error fetching invoices:', err));
-    }
+            .then(() => {
+                statusMsg.style.color = 'green';
+                statusMsg.textContent = 'تم حفظ الفاتورة وتحديث الكميات بنجاح!';
+                setTimeout(() => statusMsg.textContent = '', 3000);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                statusMsg.style.color = 'var(--accent-red)';
+                statusMsg.textContent = 'حدث خطأ أثناء الحفظ.';
+            });
 
-    // 5. تصفية الفواتير
-    function filterInvoices() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
-        const date = document.getElementById('dateFilter').value;
-
-        tableBody.innerHTML = '';
-        const filtered = allInvoices.filter(inv => {
-            const matchesQuery = inv.id.toLowerCase().includes(query) || inv.customerName.toLowerCase().includes(query);
-            const matchesDate = date ? inv.date === date : true;
-            return matchesQuery && matchesDate;
+            invoiceForm.reset();
+            document.getElementById('invoiceDate').valueAsDate = new Date();
         });
 
-        filtered.forEach(inv => renderInvoiceRow(inv));
-    }
+        // 3. إضافة صف في الجدول
+        function renderInvoiceRow(inv) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${inv.id}</td>
+                <td>${inv.customerName}</td>
+                <td>${inv.productName}</td>
+                <td>${inv.quantity}</td>
+                <td>${parseFloat(inv.total).toFixed(2)} ج.م</td>
+                <td>${inv.date}</td>
+                <td><button class="btn-action" onclick="viewInvoice('${inv.id}', '${inv.customerName}', '${inv.productName}', ${inv.quantity}, ${inv.unitPrice}, ${inv.total}, '${inv.date}')">عرض / طباعة</button></td>
+            `;
+            tableBody.appendChild(row);
+        }
 
-    // 6. عرض الفاتورة في الـ Modal للطباعة
-    function viewInvoice(id, customer, product, qty, price, total, date) {
-        document.getElementById('modalInvNum').textContent = id;
-        document.getElementById('modalCustomerName').textContent = customer;
-        document.getElementById('modalInvDate').textContent = date;
-        document.getElementById('modalTotalAmount').textContent = parseFloat(total).toFixed(2);
+        // 4. جلب الفواتير السابقة (GET)
+        function fetchInvoices() {
+            if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
 
-        const itemsBody = document.getElementById('modalItemsTable');
-        itemsBody.innerHTML = `
-            <tr>
-                <td>${product}</td>
-                <td>${qty}</td>
-                <td>${parseFloat(price).toFixed(2)}</td>
-                <td>${parseFloat(total).toFixed(2)}</td>
-            </tr>
-        `;
+            fetch(`${SCRIPT_URL}?action=getInvoices`)
+                .then(res => res.json())
+                .then(data => {
+                    allInvoices = data;
+                    tableBody.innerHTML = '';
+                    allInvoices.forEach(inv => renderInvoiceRow(inv));
+                })
+                .catch(err => console.error('Error fetching invoices:', err));
+        }
 
-        document.getElementById('invoiceModal').style.display = 'flex';
-    }
+        // 5. تصفية الفواتير
+        function filterInvoices() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const date = document.getElementById('dateFilter').value;
 
-    function closeModal() {
-        document.getElementById('invoiceModal').style.display = 'none';
-    }
+            tableBody.innerHTML = '';
+            const filtered = allInvoices.filter(inv => {
+                const matchesQuery = inv.id.toLowerCase().includes(query) || inv.customerName.toLowerCase().includes(query);
+                const matchesDate = date ? inv.date === date : true;
+                return matchesQuery && matchesDate;
+            });
 
-    window.onload = function() {
-        loadDropdowns();
-        fetchInvoices();
-    };
-</script>
+            filtered.forEach(inv => renderInvoiceRow(inv));
+        }
 
+        // 6. عرض الفاتورة في الـ Modal للطباعة
+        function viewInvoice(id, customer, product, qty, price, total, date) {
+            document.getElementById('modalInvNum').textContent = id;
+            document.getElementById('modalCustomerName').textContent = customer;
+            document.getElementById('modalInvDate').textContent = date;
+            document.getElementById('modalTotalAmount').textContent = parseFloat(total).toFixed(2);
+
+            const itemsBody = document.getElementById('modalItemsTable');
+            itemsBody.innerHTML = `
+                <tr>
+                    <td>${product}</td>
+                    <td>${qty}</td>
+                    <td>${parseFloat(price).toFixed(2)}</td>
+                    <td>${parseFloat(total).toFixed(2)}</td>
+                </tr>
+            `;
+
+            document.getElementById('invoiceModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('invoiceModal').style.display = 'none';
+        }
+
+        window.onload = function() {
+            loadDropdowns();
+            fetchInvoices();
+        };
+    </script>
+    <script>
+        document.getElementById('mobile-menu').addEventListener('click', function() {
+            this.classList.toggle('is-active');
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+    </script>
 </body>
 </html>
