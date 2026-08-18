@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة وإنشاء الفواتير</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary-navy: #1a2a3a;
+            --accent-red: #d9534f;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-navy);
+            border-bottom: 3px solid var(--accent-red);
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--primary-navy);
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-navy);
+        }
+
+        .btn-submit {
+            grid-column: 1 / -1;
+            background-color: var(--primary-navy);
+            color: #ffffff;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: #0f1a26;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: right;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--primary-navy);
+            color: #ffffff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fbfd;
+        }
+
+        .btn-action {
+            background-color: var(--primary-navy);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-action:hover {
+            background-color: #0f1a26;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-weight: bold;
+            color: var(--accent-red);
+        }
+
+        /* Modal / Print Preview Styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .invoice-box {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary-navy);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .invoice-header h2 {
+            margin: 0;
+            color: var(--primary-navy);
+        }
+
+        .invoice-details {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .invoice-total {
+            text-align: left;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: var(--accent-red);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-print {
+            background-color: var(--primary-navy);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-close {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoiceModal, #invoiceModal * {
+                visibility: visible;
+            }
+            #invoiceModal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+            }
+            .modal-actions {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>إدارة وإنشاء الفواتير</h1>
+
+    <!-- نموذج إنشاء فاتورة مبيعات جديدة -->
+    <div class="card">
+        <h2>🧾 إنشاء فاتورة مبيعات جديدة</h2>
+        <form id="invoiceForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="invoiceId">رقم الفاتورة</label>
+                    <input type="text" id="invoiceId" placeholder="INV-1001" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerSelect">العميل</label>
+                    <select id="customerSelect" required>
+                        <option value="">اختر العميل...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="productSelect">المنتج</label>
+                    <select id="productSelect" onchange="updateUnitPrice()" required>
+                        <option value="">اختر المنتج...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="unitPrice">سعر الوحدة</label>
+                    <input type="number" id="unitPrice" step="0.01" readonly required>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">الكمية</label>
+                    <input type="number" id="quantity" value="1" min="1" oninput="calculateTotal()" required>
+                </div>
+                <div class="form-group">
+                    <label for="totalAmount">الإجمالي</label>
+                    <input type="number" id="totalAmount" step="0.01" readonly required>
+                </div>
+                <div class="form-group">
+                    <label for="invoiceDate">تاريخ الفاتورة</label>
+                    <input type="date" id="invoiceDate" required>
+                </div>
+                <button type="submit" class="btn-submit">حفظ وإنشاء الفاتورة</button>
+            </div>
+        </form>
+        <div id="statusMsg" class="status-msg"></div>
+    </div>
+
+    <!-- البحث والتصفية -->
+    <div class="card">
+        <h2>🔍 بحث وتصفية الفواتير</h2>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="searchInput">رقم الفاتورة / اسم العميل</label>
+                <input type="text" id="searchInput" placeholder="اكتب للبحث..." onkeyup="filterInvoices()">
+            </div>
+            <div class="form-group">
+                <label for="dateFilter">تاريخ الفاتورة</label>
+                <input type="date" id="dateFilter" onchange="filterInvoices()">
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول عرض الفواتير -->
+    <div class="card">
+        <h2>سجل الفواتير المسجلة</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>اسم العميل</th>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>الإجمالي</th>
+                    <th>التاريخ</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="invoicesTableBody">
+                <!-- سيتم تعبئة الفواتير ديناميكيًا -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal معاينة وطباعة الفاتورة -->
+<div id="invoiceModal" class="modal-overlay">
+    <div class="invoice-box">
+        <div class="invoice-header">
+            <h2>فاتورة مبيعات</h2>
+            <span id="modalInvNum" style="font-weight: bold;"></span>
+        </div>
+        <div class="invoice-details">
+            <p><strong>اسم العميل:</strong> <span id="modalCustomerName"></span></p>
+            <p><strong>تاريخ الإصدار:</strong> <span id="modalInvDate"></span></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>المنتج</th>
+                    <th>الكمية</th>
+                    <th>السعر</th>
+                    <th>الإجمالي</th>
+                </tr>
+            </thead>
+            <tbody id="modalItemsTable">
+                <!-- بيانات العرض الموقت للمعاينة -->
+            </tbody>
+        </table>
+        <div class="invoice-total">
+            الإجمالي الكلي: <span id="modalTotalAmount"></span> ج.م
+        </div>
+        <div class="modal-actions">
+            <button class="btn-print" onclick="window.print()">🖨️ طباعة الفاتورة</button>
+            <button class="btn-close" onclick="closeModal()">إغلاق</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
+    const invoiceForm = document.getElementById('invoiceForm');
+    const tableBody = document.getElementById('invoicesTableBody');
+    const statusMsg = document.getElementById('statusMsg');
+    
+    let allInvoices = [];
+    let productsList = [];
+
+    document.getElementById('invoiceDate').valueAsDate = new Date();
+
+    // 1. تحميل قائمة العملاء والمنتجات في الـ Dropdowns عند فتح الصفحة
+    function loadDropdowns() {
+        if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+        fetch(`${SCRIPT_URL}?action=getInitialData`)
+            .then(res => res.json())
+            .then(data => {
+                const customerSelect = document.getElementById('customerSelect');
+                data.customers.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.name;
+                    opt.textContent = `${c.name} (${c.code})`;
+                    customerSelect.appendChild(opt);
+                });
+
+                const productSelect = document.getElementById('productSelect');
+                productsList = data.products;
+                productsList.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.name;
+                    opt.dataset.price = p.price;
+                    opt.textContent = `${p.name} - ${p.price} ج.م`;
+                    productSelect.appendChild(opt);
+                });
+            })
+            .catch(err => console.error('Error loading initial data:', err));
+    }
+
+    // تحديث السعر تلقائيًا عند اختيار المنتج
+    function updateUnitPrice() {
+        const select = document.getElementById('productSelect');
+        const selectedOption = select.options[select.selectedIndex];
+        const price = selectedOption.dataset.price || 0;
+        document.getElementById('unitPrice').value = price;
+        calculateTotal();
+    }
+
+    // حساب الإجمالي
+    function calculateTotal() {
+        const price = parseFloat(document.getElementById('unitPrice').value) || 0;
+        const qty = parseInt(document.getElementById('quantity').value) || 0;
+        document.getElementById('totalAmount').value = (price * qty).toFixed(2);
+    }
+
+    // 2. إرسال الفاتورة لـ Google Sheets
+    invoiceForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const invoiceData = {
+            action: 'addInvoice',
+            id: document.getElementById('invoiceId').value,
+            customerName: document.getElementById('customerSelect').value,
+            productName: document.getElementById('productSelect').value,
+            unitPrice: parseFloat(document.getElementById('unitPrice').value),
+            quantity: parseInt(document.getElementById('quantity').value),
+            total: parseFloat(document.getElementById('totalAmount').value),
+            date: document.getElementById('invoiceDate').value
+        };
+
+        allInvoices.push(invoiceData);
+        renderInvoiceRow(invoiceData);
+
+        statusMsg.style.color = '#1a2a3a';
+        statusMsg.textContent = 'جاري حفظ الفاتورة وتحديث المخزون...';
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(invoiceData)
+        })
+        .then(() => {
+            statusMsg.style.color = 'green';
+            statusMsg.textContent = 'تم حفظ الفاتورة وتحديث الكميات بنجاح!';
+            setTimeout(() => statusMsg.textContent = '', 3000);
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            statusMsg.style.color = 'var(--accent-red)';
+            statusMsg.textContent = 'حدث خطأ أثناء الحفظ.';
+        });
+
+        invoiceForm.reset();
+        document.getElementById('invoiceDate').valueAsDate = new Date();
+    });
+
+    // 3. إضافة صف في الجدول
+    function renderInvoiceRow(inv) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${inv.id}</td>
+            <td>${inv.customerName}</td>
+            <td>${inv.productName}</td>
+            <td>${inv.quantity}</td>
+            <td>${parseFloat(inv.total).toFixed(2)} ج.م</td>
+            <td>${inv.date}</td>
+            <td><button class="btn-action" onclick="viewInvoice('${inv.id}', '${inv.customerName}', '${inv.productName}', ${inv.quantity}, ${inv.unitPrice}, ${inv.total}, '${inv.date}')">عرض / طباعة</button></td>
+        `;
+        tableBody.appendChild(row);
+    }
+
+    // 4. جلب الفواتير السابقة (GET)
+    function fetchInvoices() {
+        if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+
+        fetch(`${SCRIPT_URL}?action=getInvoices`)
+            .then(res => res.json())
+            .then(data => {
+                allInvoices = data;
+                tableBody.innerHTML = '';
+                allInvoices.forEach(inv => renderInvoiceRow(inv));
+            })
+            .catch(err => console.error('Error fetching invoices:', err));
+    }
+
+    // 5. تصفية الفواتير
+    function filterInvoices() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const date = document.getElementById('dateFilter').value;
+
+        tableBody.innerHTML = '';
+        const filtered = allInvoices.filter(inv => {
+            const matchesQuery = inv.id.toLowerCase().includes(query) || inv.customerName.toLowerCase().includes(query);
+            const matchesDate = date ? inv.date === date : true;
+            return matchesQuery && matchesDate;
+        });
+
+        filtered.forEach(inv => renderInvoiceRow(inv));
+    }
+
+    // 6. عرض الفاتورة في الـ Modal للطباعة
+    function viewInvoice(id, customer, product, qty, price, total, date) {
+        document.getElementById('modalInvNum').textContent = id;
+        document.getElementById('modalCustomerName').textContent = customer;
+        document.getElementById('modalInvDate').textContent = date;
+        document.getElementById('modalTotalAmount').textContent = parseFloat(total).toFixed(2);
+
+        const itemsBody = document.getElementById('modalItemsTable');
+        itemsBody.innerHTML = `
+            <tr>
+                <td>${product}</td>
+                <td>${qty}</td>
+                <td>${parseFloat(price).toFixed(2)}</td>
+                <td>${parseFloat(total).toFixed(2)}</td>
+            </tr>
+        `;
+
+        document.getElementById('invoiceModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('invoiceModal').style.display = 'none';
+    }
+
+    window.onload = function() {
+        loadDropdowns();
+        fetchInvoices();
+    };
+</script>
+
+</body>
+</html>
